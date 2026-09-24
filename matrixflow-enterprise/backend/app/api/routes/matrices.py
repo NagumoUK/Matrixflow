@@ -1,6 +1,6 @@
 from fastapi import APIRouter, status
 
-from app.repositories.memory import store
+from app.repositories.memory_store import store
 from app.schemas.matrix import Matrix, MatrixCreate
 
 router = APIRouter()

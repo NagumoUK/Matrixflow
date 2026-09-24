@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException
 
 from app.core.exceptions import DomainError
-from app.repositories.memory import store
+from app.repositories.memory_store import store
 from app.schemas.operation import OperationRequest, OperationResponse
 from app.services.operation_service import execute_operation
 

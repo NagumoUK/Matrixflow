@@ -3,7 +3,7 @@ from typing import Any
 
 from app.algorithms import matrices, vectors
 from app.core.exceptions import DomainError
-from app.repositories.memory import store
+from app.repositories.memory_store import store
 from app.schemas.operation import OperationRequest
 
 
