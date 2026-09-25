@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
+import { useAuth } from '../../contexts/AuthContext' // Asegúrate de que la ruta apunte correctamente a tu AuthContext
 import './nav.css'
 
 type NavigationItem = { label: string; path: string; icon: string }
@@ -36,6 +37,7 @@ function NavigationGroup({ label, icon, items, open, onToggle, collapsed }: { la
 
 export function AppLayout() {
   const location = useLocation()
+  const { logout } = useAuth() // Obtenemos la función para cerrar sesión
   const [sidebarOpen, setSidebarOpen] = useState(() => localStorage.getItem('matrixflow|sidebar') !== 'closed')
   const companyActive = companyNavigation.some((item) => location.pathname === item.path)
   const analysisActive = analysisNavigation.some((item) => location.pathname === item.path)
@@ -54,7 +56,37 @@ export function AppLayout() {
       <button className="sidebar-toggle" type="button" onClick={toggleSidebar} aria-label="Mostrar u ocultar menú">☰</button>
       <NavLink className="topbar-brand" to="/dashboard"><span className="brand-mark">M</span><span>MatrixFlow <b>Enterprise</b></span></NavLink>
       <div className="topbar-search"><span>⌕</span><input aria-label="Buscar" placeholder="Buscar en MatrixFlow..." /><kbd>⌘ K</kbd></div>
-      <div className="topbar-actions"><button className="topbar-icon" aria-label="Notificaciones">♢<i /></button><button className="user-menu" aria-label="Abrir menú de usuario"><span className="avatar">LM</span><span className="user-summary"><b>Laura Méndez</b><small>Administradora</small></span><span>⌄</span></button></div>
+      
+      <div className="topbar-actions" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+        <button className="topbar-icon" aria-label="Notificaciones">♢<i /></button>
+        
+        {/* Menú de usuario original */}
+        <button className="user-menu" aria-label="Abrir menú de usuario" type="button">
+          <span className="avatar">LM</span>
+          <span className="user-summary"><b>Laura Méndez</b><small>Administradora</small></span>
+          <span>⌄</span>
+        </button>
+
+        {/* Botón de cerrar sesión ubicado de forma limpia al lado */}
+        <button 
+          onClick={logout} 
+          type="button"
+          title="Cerrar sesión"
+          style={{
+            padding: '0.4rem 0.75rem',
+            backgroundColor: 'rgba(239, 68, 68, 0.15)',
+            border: '1px solid rgba(239, 68, 68, 0.4)',
+            color: '#f87171',
+            borderRadius: '6px',
+            fontSize: '0.75rem',
+            fontWeight: 600,
+            cursor: 'pointer',
+            whiteSpace: 'nowrap'
+          }}
+        >
+          Cerrar Sesion
+        </button>
+      </div>
     </header>
 
     <aside className="sidebar">
