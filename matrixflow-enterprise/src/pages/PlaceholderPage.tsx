@@ -4,6 +4,76 @@ import './module-page.css'
 
 type Row = Record<string, string>
 type ModuleConfig = { title: string; description: string; singular: string; columns: { key: string; label: string }[]; rows: Row[]; metrics?: { label: string; value: string }[] }
+type ModuleInsight = { label: string; value: string; delta: string; tone?: 'primary' | 'info' | 'success' | 'warning' }
+type ModuleAlert = { title: string; description: string; time: string }
+
+const modulePanels: Record<string, { insights: ModuleInsight[]; alerts: ModuleAlert[] }> = {
+  ventas: {
+    insights: [
+      { label: 'Ingresos del mes', value: '$ 284.9K', delta: '+12.8%', tone: 'primary' },
+      { label: 'Ticket promedio', value: '$ 1,240', delta: '+6.3%', tone: 'info' },
+      { label: 'Cobranza', value: '96.4%', delta: '+1.8%', tone: 'success' },
+      { label: 'Cartera vencida', value: '3.1%', delta: '-0.7%', tone: 'warning' },
+    ],
+    alerts: [
+      { title: 'Meta mensual', description: 'Falta 18% para cerrar la meta del mes', time: '2h ago' },
+      { title: 'Revisión de cuotas', description: '3 sucursales requieren seguimiento', time: '4h ago' },
+      { title: 'Cierre de caja', description: 'Lima Centro pendiente de validación', time: 'Hoy' },
+    ],
+  },
+  inventario: {
+    insights: [
+      { label: 'Stock disponible', value: '84.2%', delta: '+2.4%', tone: 'success' },
+      { label: 'Productos críticos', value: '12', delta: '4 nuevos', tone: 'warning' },
+      { label: 'Rotación', value: '4.8x', delta: '+0.6%', tone: 'primary' },
+      { label: 'Pérdidas', value: '$ 8.4K', delta: '-3.1%', tone: 'info' },
+    ],
+    alerts: [
+      { title: 'Reposición urgente', description: 'Teclados y monitores bajo stock', time: '1h ago' },
+      { title: 'Movimiento de salida', description: 'Arequipa registró 12 ventas hoy', time: '3h ago' },
+      { title: 'Inventario ajustado', description: 'Lima Centro actualizó ubicaciones', time: 'Hoy' },
+    ],
+  },
+  productos: {
+    insights: [
+      { label: 'Productos activos', value: '1,248', delta: '+86', tone: 'primary' },
+      { label: 'Margen promedio', value: '32.6%', delta: '+1.9%', tone: 'success' },
+      { label: 'Productos top', value: '23', delta: '+5', tone: 'info' },
+      { label: 'Riesgo de stock', value: '7.4%', delta: '-1.1%', tone: 'warning' },
+    ],
+    alerts: [
+      { title: 'Promoción activa', description: 'Laptops corporativas con descuento', time: '2h ago' },
+      { title: 'Categoría fuerte', description: 'Computación lidera ventas del mes', time: 'Hoy' },
+      { title: 'Validación de precios', description: '8 productos requieren ajuste', time: 'Mañana' },
+    ],
+  },
+  sucursales: {
+    insights: [
+      { label: 'Ventas por sede', value: '$ 259K', delta: '+10.1%', tone: 'primary' },
+      { label: 'Sedes en KPI', value: '3/4', delta: '+1', tone: 'success' },
+      { label: 'Eficiencia', value: '89.2%', delta: '+2.4%', tone: 'info' },
+      { label: 'Seguimiento', value: '14', delta: '6 activos', tone: 'warning' },
+    ],
+    alerts: [
+      { title: 'Seguimiento de gerente', description: 'Cusco reporta retraso operativo', time: '45m ago' },
+      { title: 'Plan de ventas', description: 'Arequipa necesita reforzar canales', time: '3h ago' },
+      { title: 'Capacitación', description: 'Lima Centro programa inducción', time: 'Mañana' },
+    ],
+  },
+  default: {
+    insights: [
+      { label: 'Rendimiento', value: '84.7%', delta: '+4.2%', tone: 'primary' },
+      { label: 'Estado', value: 'Estable', delta: 'Normal', tone: 'success' },
+      { label: 'Seguimiento', value: '14', delta: 'Hoy', tone: 'info' },
+      { label: 'Prioridad', value: '3', delta: 'Urgentes', tone: 'warning' },
+    ],
+    alerts: [
+      { title: 'Revisión operativa', description: 'Se requiere validación del equipo', time: '2h ago' },
+      { title: 'Actualización', description: 'Cambios pendientes de aprobación', time: 'Hoy' },
+      { title: 'Backlog', description: 'Tareas priorizadas para el siguiente ciclo', time: 'Mañana' },
+    ],
+  },
+}
 
 const moduleData: Record<string, ModuleConfig> = {
   empresa: { title: 'Empresa', description: 'Información corporativa y configuración del negocio.', singular: 'empresa', columns: [{ key: 'name', label: 'Razón social' }, { key: 'taxId', label: 'RUC' }, { key: 'city', label: 'Ciudad' }, { key: 'status', label: 'Estado' }], rows: [{ id: '1', name: 'Grupo Horizonte S.A.C.', taxId: '20605478129', city: 'Lima', status: 'Activa' }], metrics: [{ label: 'Sucursales', value: '5' }, { label: 'Colaboradores', value: '48' }, { label: 'Antigüedad', value: '8 años' }] },
@@ -35,10 +105,10 @@ export function PlaceholderPage() {
   const key = location.pathname.split('/')[1] || 'empresa'
   const config = moduleData[key]
   if (!config) return <section className="empty-page"><span className="eyebrow">MÓDULO MATRIXFLOW</span><h1>{labels[key] || 'Página no encontrada'}</h1><p>El módulo todavía no está disponible.</p></section>
-  return <ModulePage config={config} />
+  return <ModulePage config={config} moduleKey={key} />
 }
 
-function ModulePage({ config }: { config: ModuleConfig }) {
+function ModulePage({ config, moduleKey }: { config: ModuleConfig; moduleKey: string }) {
   const [rows, setRows] = useState<Row[]>(config.rows)
   const [editing, setEditing] = useState<Row | null>(null)
   const [query, setQuery] = useState('')
@@ -54,9 +124,54 @@ function ModulePage({ config }: { config: ModuleConfig }) {
   const removeRow = (id: string) => setRows((current) => current.filter((row) => row.id !== id))
   const startNew = () => setEditing(Object.fromEntries(config.columns.map((column) => [column.key, ''])))
 
+  const panel = modulePanels[moduleKey] || modulePanels.default
+
   return <section className="module-page">
     <div className="module-heading"><div><div className="breadcrumb-line"><span>Inicio</span><span>/</span><b>{config.title}</b></div><h1>{config.title}</h1><p>{config.description}</p></div><button className="module-primary" onClick={startNew}>＋ Nueva {config.singular}</button></div>
+
     {config.metrics && <div className="module-metrics">{config.metrics.map((metric) => <div className="module-metric" key={metric.label}><span>{metric.label}</span><strong>{metric.value}</strong></div>)}</div>}
+
+    <div className="module-top-grid">
+      <div className="module-summary-panel">
+        <div className="panel-header">
+          <div>
+            <span className="eyebrow">Resumen ejecutivo</span>
+            <h2>Rendimiento general</h2>
+          </div>
+        </div>
+        <div className="summary-grid">
+          {panel.insights.map((insight) => (
+            <div className={`summary-card ${insight.tone || ''}`} key={insight.label}>
+              <span>{insight.label}</span>
+              <strong>{insight.value}</strong>
+              <small>{insight.delta}</small>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="module-alert-panel">
+        <div className="panel-header">
+          <div>
+            <span className="eyebrow">Operación</span>
+            <h2>Actividad reciente</h2>
+          </div>
+        </div>
+        <div className="activity-stack">
+          {panel.alerts.map((alert) => (
+            <div className="activity-item" key={`${alert.title}-${alert.time}`}>
+              <div className="activity-dot" />
+              <div>
+                <strong>{alert.title}</strong>
+                <span>{alert.description}</span>
+              </div>
+              <time>{alert.time}</time>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+
     <div className="module-toolbar"><div className="module-count"><strong>{rows.length}</strong> registros simulados</div><div className="module-actions"><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={`Buscar ${config.title.toLowerCase()}...`} aria-label={`Buscar ${config.title}`} /><button className="module-export">↓ Exportar</button></div></div>
     <div className="module-card"><div className="module-table-wrap"><table className="module-table"><thead><tr>{config.columns.map((column) => <th key={column.key}>{column.label}</th>)}<th className="actions-column">Acciones</th></tr></thead><tbody>{filteredRows.map((row) => <tr key={row.id}>{config.columns.map((column) => <td key={column.key}>{column.key === 'status' ? <span className={`module-status ${statusClass(row[column.key])}`}>{row[column.key]}</span> : row[column.key]}</td>)}<td className="row-actions"><button onClick={() => setEditing({ ...row })} aria-label={`Editar ${config.singular}`}>✎</button><button onClick={() => removeRow(row.id)} aria-label={`Eliminar ${config.singular}`}>⌫</button></td></tr>)}</tbody></table>{filteredRows.length === 0 && <div className="module-empty">No hay registros que coincidan con la búsqueda.</div>}</div><div className="module-card-footer">Mostrando {filteredRows.length} de {rows.length} registros <span>Datos simulados · listos para conectar con la API</span></div></div>
     {editing && <div className="module-form-card"><div className="module-form-heading"><div><span className="eyebrow">CRUD LOCAL</span><h2>{editing.id ? `Editar ${config.singular}` : `Nueva ${config.singular}`}</h2></div><button onClick={() => setEditing(null)} aria-label="Cerrar formulario">×</button></div><div className="module-form-grid">{config.columns.map((column) => <label key={column.key}>{column.label}<input value={editing[column.key] || ''} onChange={(event) => setEditing({ ...editing, [column.key]: event.target.value })} /></label>)}</div><div className="module-form-actions"><button className="module-cancel" onClick={() => setEditing(null)}>Cancelar</button><button className="module-primary" onClick={saveRow}>Guardar registro</button></div></div>}
